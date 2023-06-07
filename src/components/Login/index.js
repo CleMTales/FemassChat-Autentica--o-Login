@@ -1,4 +1,4 @@
-import { Modal, TextInput, TouchableOpacity, View } from 'react-native'
+import { Text, Modal, TextInput, TouchableOpacity, View } from 'react-native'
 import React, { useState } from 'react'
 import { AntDesign, Feather } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
@@ -11,7 +11,7 @@ export default function Login({route, navigation}) {
     const [login, setLogin] = useState('')
     const [senha, setSenha] = useState('')
     const [mostrarSenha, setMostrarSenha] = useState(false)
-    const [erro, setErro] = useState(true)
+    const [erro, setErro] = useState(false)
     const [msgLogin, setMsgLogin] = useState('')
     const [concluirModal, setConcluirModal] = useState(false)
     const [usuario, setUsuario] = useState([])

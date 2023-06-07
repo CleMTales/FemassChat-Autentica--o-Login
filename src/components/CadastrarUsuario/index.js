@@ -95,6 +95,17 @@ export default function CadastrarUsuario({ route, navigation }) {
             setParam(false)
         return false
     }
+    function checarSenhas(){
+        if (!senhaVazia || !confSenhaVazia) {
+            if (!senhasIguais()) {
+                setSenhaDiff(true)
+                return false;
+            }
+            else 
+                setSenhaDiff(false)
+        }
+        return true
+    }
     async function checarForms() {
 
         let conformidadeForm = true;
@@ -108,12 +119,8 @@ export default function CadastrarUsuario({ route, navigation }) {
             conformidadeForm = false
         if (checarVazio(confSenha, setConfSenhaVazia))
             conformidadeForm = false
-        if (!senhaVazia || !confSenhaVazia) {
-            setSenhaDiff(!senhasIguais())
-            if (senhaDiff) {
-                conformidadeForm = false;
-            }
-        }
+        if (checarSenhas == false)
+            conformidadeForm = false
         return conformidadeForm;
     }
 
