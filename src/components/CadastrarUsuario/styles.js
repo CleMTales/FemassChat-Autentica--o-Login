@@ -19,7 +19,7 @@ const styles = StyleSheet.create({
         borderColor: '#0000000',
         borderWidth: 2,
         borderRadius: 15,
-        paddingTop: 0,
+        paddingTop: '1%',
         margin: 30,
         marginBottom: 0,
         paddingLeft: 0,
@@ -30,19 +30,28 @@ const styles = StyleSheet.create({
     containerVertical: {
         alignItems:'center',
     },
-    userImage: {
+    userImageTemplate: {
         borderRadius: 250,
         borderColor: '#000000',
         borderWidth: 1,
         backgroundColor: '#45B9B9',
-        height: 107,
+        height: 100,
         width: 100,
         marginLeft: 5,
         paddingBottom: 15,
         paddingLeft: '1%',
         alignContent: 'center',
-        marginTop: '6%',
     },
+    userImage: {
+        borderRadius: 55,
+        borderColor: '#000000',
+        borderWidth: 1,
+        backgroundColor: '#45B9B9',
+        height: 100,
+        width: 100,
+        alignContent: 'center'
+    },
+
     loginText: {
         height: 30,
         width: '100%',
