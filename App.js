@@ -4,12 +4,12 @@ import Login from './src/components/Login';
 import { NavigationContainer } from '@react-navigation/native'
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import CadastrarUsuario from './src/components/CadastrarUsuario';
+import ListaUsuarios from './src/components/ListaUsuarios';
 
 export default function App() {
-
   const Stack = createNativeStackNavigator();
-
   return (
+    
 
     <NavigationContainer style={styles.container}>
       
@@ -22,7 +22,8 @@ export default function App() {
           name="Login" component={Login} />
         <Stack.Screen
           name="Cadastro de Usuário" component={CadastrarUsuario} />
-        
+        <Stack.Screen
+          name = "Lista de Usuários" component={ListaUsuarios} screenOptions= {{headerTransparent : false}}/>
         
       </Stack.Navigator>
       
