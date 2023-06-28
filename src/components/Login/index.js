@@ -4,10 +4,9 @@ import { AntDesign, Feather } from '@expo/vector-icons'
 import { LinearGradient } from 'expo-linear-gradient'
 import styles from './styles'
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
-import axios from 'axios'
-import { API_BASE_URL } from '@env'
 import ModalMsg from "../ModalMsg"
 import { useFocusEffect } from '@react-navigation/native';
+import * as api from "../../Async/ApiFunctions";
 
 export default function Login({ route, navigation }) {
 
@@ -46,39 +45,48 @@ export default function Login({ route, navigation }) {
                 </View>
             )
     }
-    function validarLogin() {
+    async function validarLogin() {
         if (login == '' || senha == '')
             setErro(true)
         else {
-            let loginTrim = login.trim()
-            let senhaTrim = senha.trim()
-            axios.get(`${API_BASE_URL}/user/${loginTrim}/${senhaTrim}`)
-                .then(response => {
-                    if (response.status == 200) {
-                        setErro(false)
-                        setConcluirModal(!concluirModal)
-                        setMsgLogin('Login efetuado com sucesso!')
-                        setUsuario(response.data)
-                    }
-                    else
-                        setErro(true)
-
-                })
-                .catch(error => {
+            await api.validateLogin(login, senha).then(response => {
+                if (response.response == null) {
+                    setErro(false)
+                    setUsuario(response)
+                    setMsgLogin('Login efetuado com sucesso!')
+                    setConcluirModal(!concluirModal)
+                }
+                else {
                     setErro(true)
-                    setUsuario([])
-                });
+                }
+            }).catch(error => {
+                setErro(true)
+                console.log(error);
+            });
         }
     }
 
-    function loginTest(){
-        axios.get(`${API_BASE_URL}/user/123/123`)
+    async function loginTest() {
+        navigation.push('Lista de Usuários', { usuario: {
+            "id": 3,
+            "nome": "123",
+            "avatar": '',
+            "senha": "123",
+            "email": "123",
+            "telefone": "123",
+            "hash": -1471247995
+        } })
+        /* axios.get(`${API_BASE_URL}/user/221234/1234`).then(
+            (usuario) => axios.get(`${API_BASE_URL}/user/123/123`).then((contato) =>
+                navigation.push("Conversa", { contato: contato.data, usuario: usuario.data }))
+        ) */
+        /* axios.get(`${API_BASE_URL}/user/221234/1234`)
                 .then(response => {
                     if (response.status == 200) {
                         setErro(false)
-                        setConcluirModal(!concluirModal)
-                        setMsgLogin('Login efetuado com sucesso!')
                         setUsuario(response.data)
+                        setMsgLogin('Login efetuado com sucesso!')
+                        setConcluirModal(!concluirModal)                        
                     }
                     else
                         setErro(true)
@@ -87,7 +95,7 @@ export default function Login({ route, navigation }) {
                 .catch(error => {
                     setErro(true)
                     setUsuario([])
-                });
+                }); */
     }
 
     function AvatarUsuario() {
@@ -116,7 +124,7 @@ export default function Login({ route, navigation }) {
 
     useFocusEffect(() => {
         if (redirecionar == true)
-            navigation.push('Lista de Usuários', { login: usuario.telefone })
+            navigation.push('Lista de Usuários', { usuario: usuario })
         setRedirecionar(false)
     }
     ), [redirecionar]
@@ -212,7 +220,7 @@ export default function Login({ route, navigation }) {
                     </View>
 
                     <TouchableOpacity activeOpacity={0.9} style={styles.botaoLogin}
-                        onPress={loginTest}/* {validarLogin} */>
+                        onPress={validarLogin}/* {validarLogin} */>
                         <AntDesign name="arrowright" size={34} color="black" />
                     </TouchableOpacity>
 

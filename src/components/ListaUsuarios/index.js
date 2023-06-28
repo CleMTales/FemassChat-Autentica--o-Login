@@ -1,115 +1,211 @@
-import React, { memo,  useState } from "react"
-import { FlatList,  View } from "react-native"
-import UsuarioListView from "../UsuarioListView"
+import React, { memo, useEffect, useState } from "react"
+import { useHeaderHeight } from '@react-navigation/elements';
+import { FlatList, Text, TouchableOpacity, View } from "react-native"
 import { styles } from "./styles"
 import { LinearGradient } from 'expo-linear-gradient'
-import axios  from "axios"
-//import AsyncStorage from '@react-native-async-storage/async-storage'
-import {API_BASE_URL} from '@env'
 import ModalMsg from "../ModalMsg"
 import CaixaPesquisa from "../CaixaPesquisa"
+import ContatoListView from "../ContatoListView";
+import * as Storage from "../../Async/StorageFunctions"
+import * as api from "../../Async/ApiFunctions";
+import ModalNovaConversa from "../ModalNovaConversa";
+import { Entypo } from '@expo/vector-icons';
+import { useFocusEffect } from "@react-navigation/native";
 
-export default memo(ListaUsuarios)
-function ListaUsuarios(props) {
+export default
+    function ListaUsuarios({ route }) {
     const [pesquisa, setPesquisa] = useState('')
     const [pesquisaAnterior, setPesquisaAnterior] = useState('')
     const [listaUsuarios, setListaUsuarios] = useState([])
     const [listaExibicao, setListaExibicao] = useState([])
-    const [erroPesquisa, setErroPesquisa] = useState(false)
-    function pesquisaChanged(pesquisa) {
-        setPesquisa(pesquisa.toLowerCase())
-    }
-    
-    async function getListaUsuarios() {
-        axios.get(`${API_BASE_URL}/message/buscarUsuarios/1234`)
-            .then(response => {
-                if (response.status == 200) {
-                    /* setErro(false)
-                    setConcluirModal(!concluirModal)
-                    setMsgLogin('Login efetuado com sucesso!')
-                    setUsuario(response.data) */
-                    console.log(API_BASE_URL)
-                    console.log(response)
-                    return (response.data)
-                }
+    const [erroBuscaUsers, setErroBuscaUsers] = useState(false)
+    const [iniciarNovaConversa, setIniciarNovaConversa] = useState(false)
+    const [contatoSelecionado, setContatoSelecionado] = useState('')
+    const [redirecionar, setRedirecionar] = useState(false)
+        const [usuariosCadastrados, setUsuariosCadastrados] = useState([])
+    const usuario = route.params.usuario;
 
-            })
-            .catch(error => {
-                console.log(error)
-                setErroPesquisa(true)
-                /* setErro(true) */
-            });
-        return ({})
-    }
+    /* console.log(route);
 
+    console.log(usuario); */
+
+
+    async function getConversasComUsuario() {
+        try {
+            const response = await api.getConversas(usuario.id);
+
+            if (response != null) {
+                /* console.log(response); */
+                return response;
+            } else {
+                setErroBuscaUsers(true);
+                return [];
+            }
+        } catch (error) {
+
+            console.log(error);
+            setErroBuscaUsers(true);
+            return [];
+        }
+    }
 
     async function updateList() {
-        
-        getListaUsuarios().then((listaItems) => {
-            const listaAlfabetica = (items)=> {items.sort((a, b) => {
-                const nomeA = a.nome.toLowerCase()
-                const nomeB = b.nome.toLowerCase()
-                if (nomeA < nomeB) {
-                    return -1
+        //debugger
+        //console.log(listaUsuarios);
+        try {
+            const contatosSalvos = await Storage.getConversasSalvas(route.params.usuario.hash)
+            //console.log(contatosSalvos);
+
+            /* console.log(new Date().toISOString())
+            console.log(new Date(contatosSalvos.ultimaBusca).toISOString())*/
+            if (contatosSalvos == null ||
+                contatosSalvos.contatos == null
+                || ((new Date().getTime() - Date.parse(contatosSalvos.ultimaBusca)) / 1000) >= 5) {
+                //console.log(listaUsuarios);
+                const response = await getConversasComUsuario();
+                //console.log(response);
+                if (response != null) {
+                    //.log(response);
+                    /* console.log(listaUsuarios);
+                    console.log(listaExibicao); */
+                    sortUserList(response);
+                    Storage.saveListaContatos(response, route.params.usuario.hash)
                 }
-                if (nomeA > nomeB) {
-                    return 1
+                else {
+                    console.log('Sem conversas');//TODO Aviso sem conversas/iniciar conversa
                 }
-                return 0
-            })}
-            if (listaAlfabetica !== listaUsuarios) {
-                setListaUsuarios(listaAlfabetica)
-                setListaExibicao(listaAlfabetica)
+
             }
-        })
+            else console.log('não ha conversas novas');
+        } catch (error) {
+            console.log(error);
+        }
     }
+
+
+    async function getUsuariosCadastrados() {
+        try {
+          const response = await api.getUsuariosCadastrados(route.params.usuario.telefone);
+          if (response != null) {
+            setUsuariosCadastrados(response);
+          } else {
+            setUsuariosCadastrados([]);
+          }
+        } catch (error) {
+          console.log(error);
+          setUsuariosCadastrados([]);
+        }
+      }
+    
+      useEffect(() => {
+        getUsuariosCadastrados();
+      }, []);
+
+    function sortUserList(lista) {
+        const listaAlfabetica = lista.slice().sort((a, b) => {
+            const nomeA = a.nome.toLowerCase();
+            const nomeB = b.nome.toLowerCase();
+            if (nomeA < nomeB) {
+                return -1;
+            }
+            if (nomeA > nomeB) {
+                return 1;
+            }
+            return 0;
+        });
+        setListaUsuarios(listaAlfabetica)
+        setListaExibicao(listaAlfabetica)/* 
+        console.log(listaAlfabetica); */
+    }
+
+
 
     function pesquisar() {
         if (pesquisa != pesquisaAnterior) {
-            const listaFiltrada = listaUsuarios.filter((contatoLista) => {
-                return (String(contatoLista.nome).toLowerCase().includes(pesquisa) || String(contatoLista.apelido).includes(pesquisa))
+            const listaFiltrada = listaUsuarios.filter((usuarioLista) => {
+                return (String(usuarioLista.nome).toLowerCase().includes(pesquisa))
             })
+
             setListaExibicao(listaFiltrada)
             setPesquisaAnterior(pesquisa)
         }
     }
 
-    /* useEffect(() => {
-        if (props.route.params?.shouldUpdate == true) {
-            updateList().then(
-                props.navigation.setParams({
-                    shouldUpdate: false
-                }),
-            )
-        }
-    }, [props.route.params?.shouldUpdate]) */
+    function pesquisaChanged(pesquisa) {
+        setPesquisa(pesquisa.toLowerCase())
+    }
+
+    function rotinaRedirecionar(contatoSelecionado) {
+        /* console.log('rotina');
+        console.log(contatoSelecionado); */
+        setIniciarNovaConversa(false)
+        setContatoSelecionado(contatoSelecionado)
+        
+    }
+
+    useEffect(() =>
+        pesquisar()
+    ), [pesquisa];
+
+    useEffect(() => {
+        updateList()
+        const interval = setInterval(updateList, 5000);
+        return () => {
+            clearInterval(interval);
+        };
+    }, []);
+
+    useFocusEffect(() => {
+        if (redirecionar == true){ 
+            setRedirecionar(false)
+            navigation.push('Conversa', { contato:contatoSelecionado, usuario: usuario })
+       }
+    }
+    ), [redirecionar]
 
 
     return (
         <View style={styles.containerBackground}>
-            {getListaUsuarios}
-            {erroPesquisa && <ModalMsg
-            visivel={erroPesquisa}
-            setVisivel={setErroPesquisa}
-            mensagem={"Houve um erro ao procurar os usuários."}
-            rotinaCancela={() => { console.log("cancelado")}}
+            {erroBuscaUsers && <ModalMsg
+                visivel={erroBuscaUsers}
+                setVisivel={setErroBuscaUsers}
+                mensagem={"Houve um erro ao procurar os usuários."}
+                rotinaCancela={() => { console.log("cancelado") }}
             />}
             <LinearGradient
                 colors={['#59d9ebad', '#64A066']}
                 style={styles.background}
             />
             <CaixaPesquisa
-            pesquisa = {pesquisa}
-            pesquisaChanged = {pesquisaChanged}
-            pesquisar = {pesquisar}
+                pesquisa={pesquisa}
+                pesquisaChanged={pesquisaChanged}
+                headerHeight={useHeaderHeight()}
             />
-            < View style={styles.containerContato} >
+
+            < View style={styles.containerUsuario} >
                 <FlatList
-                    data={listaExibicao}
+                    data={listaExibicao ? listaExibicao : {}}
                     keyExtractor={(item) => String(item.id)}
                     showsVerticalScrollIndicator={false}
-                    renderItem={({ item }) => <UsuarioListView contato={item} />}
+                    renderItem={({ item }) => (<ContatoListView contato={item} usuario={route.params.usuario} />)}
                 />
+                <View>
+                    {iniciarNovaConversa && <ModalNovaConversa
+                        visivel={iniciarNovaConversa}
+                        setVisivel={setIniciarNovaConversa}
+                        mensagem={"Deseja iniciar uma conversa com qual usuário?"}
+                        rotinaCancela={() => { console.log("cancelado") }}
+                        rotinaRedirecionar={(contato) =>  {
+                            rotinaRedirecionar(contato)}}
+                        usuario = {usuario}
+                        usuariosCadastrados = {usuariosCadastrados}
+                    />}
+
+                    <TouchableOpacity activeOpacity={0.9} style={styles.botaoNovaConversa}
+                        onPress={() => { setIniciarNovaConversa(true) }}>
+                        <Entypo name="new-message" size={34} color="black" />
+                    </TouchableOpacity>
+                </View>
             </View >
         </View>
     )

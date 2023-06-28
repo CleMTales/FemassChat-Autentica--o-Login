@@ -8,6 +8,7 @@ import { MaskedTextInput } from "react-native-mask-text";
 import axios from 'axios'
 import { Image } from 'expo-image'
 import * as ImagePicker from 'expo-image-picker'
+import { API_BASE_URL } from '@env'
 export default function CadastrarUsuario({ route, navigation }) {
 
     const [nome, setNome] = useState('')
@@ -30,7 +31,7 @@ export default function CadastrarUsuario({ route, navigation }) {
     const [msgCadastro, setMsgCadastro] = useState('')
     //const [permissao, requisitarPermissao] = ImagePicker.useCameraPermissions();
     const [confirmarImagem, setConfirmarImagem] = useState(false)
-    const baseUrl = 'http://192.168.0.2:8080';
+    
 
 
     function nomeChanged(nome) {
@@ -109,23 +110,14 @@ export default function CadastrarUsuario({ route, navigation }) {
         return false
     }
     function checarForms() {
-
-        let conformidadeForm = true
-        if (checarVazio() == false) {
-            conformidadeForm = false
-        }
-        if (checarSenhasIguais() == true) {
-            conformidadeForm = false
-        }
-        return conformidadeForm;
+        return !(!checarVazio() || checarSenhasIguais())
     }
 
 
     async function validarCadastro() {
         const valido = checarForms()
-        console.log(valido)
         if (valido) {
-            axios.post(`${baseUrl}/user/`,
+            axios.post(`${API_BASE_URL}/user/`,
                 {
                     "nome": nome,
                     "apelido": apelido ? apelido : null,

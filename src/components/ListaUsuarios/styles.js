@@ -1,7 +1,7 @@
 import { StyleSheet } from "react-native";
 
 export const styles = StyleSheet.create({
-    containerContato: {
+    containerUsuario: {
         backgroundColor: '#A3D8EE',
         borderColor: '#0000000',
         borderWidth: 1,
@@ -35,7 +35,21 @@ export const styles = StyleSheet.create({
         flexDirection: 'row',
         padding: 0,
     },
-
+    botaoNovaConversa: {
+        width: 50,
+        aspectRatio: 1,
+        backgroundColor: '#45B9B9',
+        justifyContent: 'center',
+        alignItems: 'center',
+        alignSelf: 'flex-end',
+        borderRadius: 15,
+        borderColor: 'black',
+        borderWidth: 1,
+        borderStyle: 'solid',
+        position:'absolute',
+        bottom: '3%',
+        right:'3%',
+    },
     input: {
         height: 30,
         width: 175,

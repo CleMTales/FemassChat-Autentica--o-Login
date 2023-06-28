@@ -3,8 +3,7 @@ import React from 'react'
 import { AntDesign } from '@expo/vector-icons'
 import styles from './styles'
 export default function ModalMsg({ visivel, setVisivel, mensagem, rotinaConfirma, rotinaCancela }) {
-    console.log(rotinaCancela)
-    console.log(rotinaConfirma)
+   
     return (
         <Modal
             visible={visivel}

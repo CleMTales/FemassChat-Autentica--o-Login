@@ -24,7 +24,6 @@ export const styles = StyleSheet.create({
     container: {
         flexDirection: 'row',
         justifyContent: 'space-evenly',
-        marginTop: '10%'
     },
     containerPesquisa: {
         flexDirection: 'row',
